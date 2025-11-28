@@ -1,4 +1,4 @@
-module airbnb-downloader
+module github.com/mikemyl/airbnb-downloader
 
 go 1.25
 

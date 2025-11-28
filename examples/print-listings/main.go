@@ -4,7 +4,7 @@ import (
 	"log"
 	"runtime"
 
-	"airbnb-downloader/pkg/airbnb"
+	"github.com/mikemyl/airbnb-downloader/pkg/airbnb"
 )
 
 func main() {
