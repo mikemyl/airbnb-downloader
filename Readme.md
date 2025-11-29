@@ -2,6 +2,8 @@
 
 This project aims to download the basic information of our AirBnb listings and store it locally.
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/mikemyl/airbnb-downloader)](https://goreportcard.com/report/github.com/mikemyl/airbnb-downloader)
+
 AirBnB does not provide an API for this, and getting that info for each one of our listings manually, is a pain. I therefore created this tool to automate the process.
 
 Currently, it only extracts:
