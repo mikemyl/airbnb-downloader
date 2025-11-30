@@ -44,6 +44,10 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 	// if err != nil {
 	// 	return nil, fmt.Errorf("failed to get reviews: %w", err)
 	// }
+	roomInfo, err := c.getRoomInfo(page)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get room info: %w", err)
+	}
 
 	photos, err := c.getPhotos(page)
 	if err != nil {
@@ -65,6 +69,7 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		Title:       title,
 		Description: description,
 		Photos:      photos,
+		RoomInfo:    roomInfo,
 	}, nil
 }
 

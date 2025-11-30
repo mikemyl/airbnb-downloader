@@ -11,6 +11,11 @@ Currently, it only extracts:
 - Description (split into paragraphs)
 - Photos
 - Reviews
+- RoomInfo
+  * Number of guests
+  * Number of bedrooms
+  * Number of beds
+  * Number of baths
 
 I plan to add more in the future.
 

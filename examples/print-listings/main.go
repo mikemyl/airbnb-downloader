@@ -28,6 +28,8 @@ func main() {
 			runtime.Goexit()
 		}
 
+		log.Printf("Title: %s\n", listing.Title)
+
 		log.Println("=== Description ===")
 		for i, paragraph := range listing.Description {
 			log.Printf("%d. %s\n\n", i+1, paragraph)
@@ -37,5 +39,11 @@ func main() {
 		for i, photoURL := range listing.Photos {
 			log.Printf("%d. %s\n", i+1, photoURL.String())
 		}
+
+		log.Println("=== Room Info ===")
+		log.Printf("Guests: %d\n", listing.RoomInfo.NumberOfGuests)
+		log.Printf("Bedrooms: %d\n", listing.RoomInfo.NumberOfBedrooms)
+		log.Printf("Beds: %d\n", listing.RoomInfo.NumberOfBeds)
+		log.Printf("Baths: %d\n", listing.RoomInfo.NumberOfBaths)
 	}
 }
