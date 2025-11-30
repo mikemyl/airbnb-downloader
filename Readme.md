@@ -23,6 +23,13 @@ Currently, it extracts:
 
 ### How to run
 
-Check the [examples](examples) directory.
+Download the latest release from the [releases](https://github.com/mikemyl/airbnb-downloader/releases) page, for your platform.
+
+Example usage:
+```bash
+airbnb-downloader https://www.airbnb.com/rooms/12345
+```
+
+Also, check the [examples](examples) directory for integrating it as a library.
 
 
