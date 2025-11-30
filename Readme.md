@@ -6,7 +6,7 @@ This project aims to download the basic information of our AirBnb listings and s
 
 AirBnB does not provide an API for this, and getting that info for each one of our listings manually, is a pain. I therefore created this tool to automate the process.
 
-Currently, it only extracts:
+Currently, it extracts:
 - Title
 - Description (split into paragraphs)
 - Photos
@@ -16,8 +16,6 @@ Currently, it only extracts:
   * Number of bedrooms
   * Number of beds
   * Number of baths
-
-I plan to add more in the future.
 
 ### Dependencies
 

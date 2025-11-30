@@ -1,19 +1,17 @@
 package airbnb
 
-import "net/url"
-
 type RoomInfo struct {
-	NumberOfGuests   int
-	NumberOfBedrooms int
-	NumberOfBeds     int
-	NumberOfBaths    int
+	NumberOfGuests   int `json:"numberOfGuests"`
+	NumberOfBedrooms int `json:"numberOfBedrooms"`
+	NumberOfBeds     int `json:"numberOfBeds"`
+	NumberOfBaths    int `json:"numberOfBaths"`
 }
 
 // Listing represents an Airbnb listing with its metadata.
 type Listing struct {
-	URL         *url.URL
-	Title       string
-	RoomInfo    *RoomInfo
-	Description []string
-	Photos      []*url.URL
+	URL         string    `json:"url"`
+	Title       string    `json:"title"`
+	RoomInfo    *RoomInfo `json:"roomInfo"`
+	Description []string  `json:"description"`
+	Photos      []string  `json:"photos"`
 }

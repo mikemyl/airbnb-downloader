@@ -64,11 +64,17 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		return nil, fmt.Errorf("failed to get description: %w", err)
 	}
 
+	// Convert photo URLs to strings
+	photoStrings := make([]string, len(photos))
+	for i, photoURL := range photos {
+		photoStrings[i] = photoURL.String()
+	}
+
 	return &Listing{
-		URL:         parsedURL,
+		URL:         parsedURL.String(),
 		Title:       title,
 		Description: description,
-		Photos:      photos,
+		Photos:      photoStrings,
 		RoomInfo:    roomInfo,
 	}, nil
 }
