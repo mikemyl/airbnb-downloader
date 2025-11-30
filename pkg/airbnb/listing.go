@@ -35,6 +35,16 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		c.hasGonePastTheTheTranslationDialog = true
 	}
 
+	title, err := c.GetTitle(page)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get title: %w", err)
+	}
+
+	// reviews, err := c.GetReviews(page)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to get reviews: %w", err)
+	// }
+
 	photos, err := c.getPhotos(page)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get photos: %w", err)
@@ -52,6 +62,7 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 
 	return &Listing{
 		URL:         parsedURL,
+		Title:       title,
 		Description: description,
 		Photos:      photos,
 	}, nil

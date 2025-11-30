@@ -7,4 +7,5 @@ type Listing struct {
 	URL         *url.URL
 	Description []string
 	Photos      []*url.URL
+	Title       string
 }
