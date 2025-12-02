@@ -37,7 +37,7 @@ func main() {
 
 		log.Printf("=== Photos (%d total) ===\n", len(listing.Photos))
 		for i, photoURL := range listing.Photos {
-			log.Printf("%d. %s\n", i+1, photoURL.String())
+			log.Printf("%d. %s\n", i+1, photoURL)
 		}
 
 		log.Println("=== Room Info ===")
