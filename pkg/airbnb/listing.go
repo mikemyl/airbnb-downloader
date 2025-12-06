@@ -53,6 +53,7 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get photos: %w", err)
 	}
+	photos = removeDuplicates(photos)
 	err = page.WaitIdle(defaultWaitTime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to wait for page to load after getting photos: %w", err)
@@ -77,6 +78,18 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		Photos:      photoStrings,
 		RoomInfo:    roomInfo,
 	}, nil
+}
+
+func removeDuplicates(photos []*url.URL) []*url.URL {
+	noDups := make([]*url.URL, 0, len(photos))
+	seen := make(map[string]bool)
+	for _, photo := range photos {
+		if !seen[photo.String()] {
+			seen[photo.String()] = true
+			noDups = append(noDups, photo)
+		}
+	}
+	return noDups
 }
 
 func (c *Client) getDescription(page *rod.Page) ([]string, error) {
