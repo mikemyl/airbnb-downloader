@@ -13,6 +13,7 @@ import (
 
 const (
 	defaultWaitTime = 5 * time.Second
+	shortWaitTime   = 500 * time.Millisecond
 )
 
 func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
@@ -143,15 +144,16 @@ func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 
 		photos = append(photos, photoURL)
 
-		nextButtonElement, err := page.Timeout(700 * time.Millisecond).Element("button[aria-label='Next']")
+		buttonSearch, err := page.Timeout(shortWaitTime * 2).Search("div[data-testid='modal-container'] button[aria-label='Next']")
 		if err != nil {
 			hasMorePhotos = false
 			continue
 		}
 
-		time.Sleep(400 * time.Millisecond)
-		if err2 := nextButtonElement.CancelTimeout().Click("left", 1); err2 != nil {
-			return nil, fmt.Errorf("failed to click next button: %w", err2)
+		button := buttonSearch.First
+
+		if err = button.CancelTimeout().Click("left", 1); err != nil {
+			return nil, fmt.Errorf("failed to click next button: %w", err)
 		}
 	}
 	return photos, nil
