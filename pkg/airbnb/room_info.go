@@ -42,19 +42,30 @@ func captureRoomInfo(text string, r *RoomInfo) error {
 		return errors.New("no parts found")
 	}
 
-	num, err := strconv.Atoi(parts[0])
-	if err != nil {
-		return fmt.Errorf("failed to convert number to int: %w", err)
-	}
-
 	switch {
 	case strings.Contains(text, "guest"):
+		num, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return fmt.Errorf("failed to convert number to int: %w", err)
+		}
 		r.NumberOfGuests = num
 	case strings.Contains(text, "bedroom"):
+		num, err := strconv.ParseFloat(parts[0], 64)
+		if err != nil {
+			return fmt.Errorf("failed to convert number to int: %w", err)
+		}
 		r.NumberOfBedrooms = num
 	case strings.Contains(text, "bed"):
+		num, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return fmt.Errorf("failed to convert number to int: %w", err)
+		}
 		r.NumberOfBeds = num
 	case strings.Contains(text, "bath"):
+		num, err := strconv.ParseFloat(parts[0], 64)
+		if err != nil {
+			return fmt.Errorf("failed to convert number to int: %w", err)
+		}
 		r.NumberOfBaths = num
 	}
 

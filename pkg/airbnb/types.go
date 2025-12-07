@@ -1,10 +1,10 @@
 package airbnb
 
 type RoomInfo struct {
-	NumberOfGuests   int `json:"numberOfGuests"`
-	NumberOfBedrooms int `json:"numberOfBedrooms"`
-	NumberOfBeds     int `json:"numberOfBeds"`
-	NumberOfBaths    int `json:"numberOfBaths"`
+	NumberOfGuests   int     `json:"numberOfGuests"`
+	NumberOfBedrooms float64 `json:"numberOfBedrooms"`
+	NumberOfBeds     int     `json:"numberOfBeds"`
+	NumberOfBaths    float64 `json:"numberOfBaths"`
 }
 
 // Listing represents an Airbnb listing with its metadata.

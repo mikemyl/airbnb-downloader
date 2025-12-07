@@ -42,8 +42,8 @@ func main() {
 
 		log.Println("=== Room Info ===")
 		log.Printf("Guests: %d\n", listing.RoomInfo.NumberOfGuests)
-		log.Printf("Bedrooms: %d\n", listing.RoomInfo.NumberOfBedrooms)
+		log.Printf("Bedrooms: %f\n", listing.RoomInfo.NumberOfBedrooms)
 		log.Printf("Beds: %d\n", listing.RoomInfo.NumberOfBeds)
-		log.Printf("Baths: %d\n", listing.RoomInfo.NumberOfBaths)
+		log.Printf("Baths: %f\n", listing.RoomInfo.NumberOfBaths)
 	}
 }
