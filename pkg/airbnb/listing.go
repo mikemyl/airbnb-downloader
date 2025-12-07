@@ -95,7 +95,7 @@ func removeDuplicates(photos []*url.URL) []*url.URL {
 func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 	descButtonSearch, err := page.Timeout(4 * time.Second).Search("div[data-section-id='DESCRIPTION_DEFAULT'] > div > button")
 	if err != nil {
-		return nil, fmt.Errorf("failed to find description button: %w", err)
+		return maybeReadDescriptionSpan(page)
 	}
 	descButton := descButtonSearch.First
 	_ = descButton.WaitStable(defaultWaitTime)
@@ -146,4 +146,18 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 	}
 
 	return description, nil
+}
+
+func maybeReadDescriptionSpan(page *rod.Page) ([]string, error) {
+	descriptionSpanSearch, err := page.Timeout(4 * time.Second).Search("div[data-section-id='DESCRIPTION_DEFAULT'] span")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find description button or span: %w", err)
+	}
+	descriptionSpan := descriptionSpanSearch.First
+	text, err := descriptionSpan.Text()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get description span text: %w", err)
+	}
+	textWithoutRegistrationDetails := strings.Split(text, "Registration Details")[0]
+	return []string{strings.TrimSpace(textWithoutRegistrationDetails)}, nil
 }

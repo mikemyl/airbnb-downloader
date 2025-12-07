@@ -39,7 +39,7 @@ func run() error {
 		fmt.Fprintf(os.Stderr, "  %s https://www.airbnb.com/rooms/12345,https://www.airbnb.com/rooms/67890\n", os.Args[0])
 	}
 
-	fs.Parse(os.Args[1:])
+	_ = fs.Parse(os.Args[1:])
 
 	// Expect exactly one argument
 	args := fs.Args()
