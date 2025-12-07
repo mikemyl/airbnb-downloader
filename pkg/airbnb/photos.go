@@ -122,6 +122,7 @@ func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 	// Iterate through all images in the slideshow
 	hasMorePhotos := true
 	for hasMorePhotos {
+		_ = page.WaitIdle(shortWaitTime)
 		imageElementSearch, err := page.Timeout(defaultWaitTime * 2).Search("div[data-testid='photo-viewer-slideshow-desktop'] img")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find image element: %w", err)
