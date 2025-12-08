@@ -16,6 +16,7 @@ Currently, it extracts:
   * Number of bedrooms
   * Number of beds
   * Number of baths
+- Amenities
 
 ### Dependencies
 
@@ -63,8 +64,20 @@ Example usage and output:
       "https://a0.muscache.com/im/pictures/miso/Hosting-51573207/original/2c802ef1-19ef-417c-aa1e-b95deb85a885.jpeg",
       "https://a0.muscache.com/im/pictures/miso/Hosting-51573207/original/cc98001c-d734-42a2-a0c3-b0f24b888895.jpeg",
       "https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6NTE1NzMyMDc%3D/original/98cb244c-1f08-4b84-95ba-e714d476e35f.jpeg"
+    ],
+    "amenities": [
+      "Air conditioning",
+      "Heating",
+      "Wifi",
+      "Kitchen",
+      "Free parking on premises",
+      "Essentials",
+      "Hair dryer",
+      "Iron",
+      "Laptop friendly workspace",
+      "TV"
     ]
-  }
+  }  
 ]
 ```
 

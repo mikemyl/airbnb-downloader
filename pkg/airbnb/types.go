@@ -14,4 +14,5 @@ type Listing struct {
 	RoomInfo    *RoomInfo `json:"roomInfo"`
 	Description []string  `json:"description"`
 	Photos      []string  `json:"photos"`
+	Amenities   []string  `json:"amenities"`
 }

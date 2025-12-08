@@ -16,7 +16,8 @@ func main() {
 	defer client.Close()
 
 	listingUrls := []string{
-		"https://www.airbnb.com/rooms/660132646344132887?source_impression_id=p3_1765106710_P39P0F8cY_f9-JyZ",
+		"https://www.airbnb.com/rooms/51573244?source_impression_id=p3_1763552182_P3BLEoXunPK0xs6K",
+		"https://www.airbnb.com/rooms/51573207?source_impression_id=p3_1764364702_P3PINb00ZWafPed0",
 	}
 	for _, listingURL := range listingUrls {
 		log.Printf("\n\n === Fetching listing: %s === \n\n", listingURL)
@@ -44,5 +45,10 @@ func main() {
 		log.Printf("Bedrooms: %f\n", listing.RoomInfo.NumberOfBedrooms)
 		log.Printf("Beds: %d\n", listing.RoomInfo.NumberOfBeds)
 		log.Printf("Baths: %f\n", listing.RoomInfo.NumberOfBaths)
+
+		log.Println("=== Amenities ===")
+		for i, amenity := range listing.Amenities {
+			log.Printf("%d. %s\n", i+1, amenity)
+		}
 	}
 }
