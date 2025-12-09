@@ -38,7 +38,7 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		return nil, fmt.Errorf("failed to get title: %w", err)
 	}
 
-	// reviews, err := c.GetReviews(page)
+	// reviews, err := c.getReviews(page)
 	// if err != nil {
 	// 	return nil, fmt.Errorf("failed to get reviews: %w", err)
 	// }
@@ -68,6 +68,11 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		return nil, fmt.Errorf("failed to get amenities: %w", err)
 	}
 
+	reviews, err := c.getReviews(page)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get reviews: %w", err)
+	}
+
 	// Convert photo URLs to strings
 	photoStrings := make([]string, len(photos))
 	for i, photoURL := range photos {
@@ -81,6 +86,7 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		Photos:      photoStrings,
 		RoomInfo:    roomInfo,
 		Amenities:   amenities,
+		Reviews:     reviews,
 	}, nil
 }
 

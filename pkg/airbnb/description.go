@@ -61,7 +61,7 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 		}
 	}
 
-	err = closeDescriptionAndGoBackToMainPage(page)
+	err = navigateBack(page)
 	if err != nil {
 		return nil, fmt.Errorf("failed to close description and go back to main page: %w", err)
 	}
@@ -81,15 +81,4 @@ func maybeReadDescriptionSpan(page *rod.Page) ([]string, error) {
 	}
 	textWithoutRegistrationDetails := strings.Split(text, "Registration Details")[0]
 	return []string{strings.TrimSpace(textWithoutRegistrationDetails)}, nil
-}
-
-func closeDescriptionAndGoBackToMainPage(page *rod.Page) error {
-	err := page.NavigateBack()
-	if err != nil {
-		return fmt.Errorf("failed to navigate back: %w", err)
-	}
-	if err = page.Timeout(defaultWaitTime).WaitLoad(); err != nil {
-		return fmt.Errorf("failed to wait for page to load after navigating back: %w", err)
-	}
-	return nil
 }

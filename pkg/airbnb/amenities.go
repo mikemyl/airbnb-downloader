@@ -87,7 +87,7 @@ func (c *Client) getAmenities(page *rod.Page) ([]string, error) {
 			amenities = append(amenities, text)
 		}
 	}
-	err = closeAmenitiesAndGoBackToMainPage(page)
+	err = navigateBack(page)
 	if err != nil {
 		return nil, fmt.Errorf("failed to close amenities and go back to main page: %w", err)
 	}
@@ -115,15 +115,4 @@ func openAmenitiesModal(page *rod.Page) (*rod.Element, error) {
 		return nil, fmt.Errorf("failed to find amenities secion in modal: %w", err)
 	}
 	return amenitiesModal, nil
-}
-
-func closeAmenitiesAndGoBackToMainPage(page *rod.Page) error {
-	err := page.NavigateBack()
-	if err != nil {
-		return fmt.Errorf("failed to navigate back: %w", err)
-	}
-	if err = page.Timeout(defaultWaitTime).WaitLoad(); err != nil {
-		return fmt.Errorf("failed to wait for page to load after navigating back: %w", err)
-	}
-	return nil
 }

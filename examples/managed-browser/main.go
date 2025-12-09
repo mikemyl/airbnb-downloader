@@ -49,5 +49,15 @@ func main() {
 		for i, amenity := range listing.Amenities {
 			log.Printf("%d. %s\n", i+1, amenity)
 		}
+
+		log.Println("=== Reviews ===")
+		log.Printf("Score: %f\n", listing.Reviews.Score)
+		log.Printf("Number of Reviews: %d\n", listing.Reviews.NumberOfReviews)
+		log.Printf("Score Cleanliness: %f\n", listing.Reviews.ScoreCleanliness)
+		log.Printf("Score Accuracy: %f\n", listing.Reviews.ScoreAccuracy)
+		log.Printf("Score Communication: %f\n", listing.Reviews.ScoreCommunication)
+		log.Printf("Score Location: %f\n", listing.Reviews.ScoreLocation)
+		log.Printf("Score Check In: %f\n", listing.Reviews.ScoreCheckIn)
+		log.Printf("Score Value: %f\n", listing.Reviews.ScoreValue)
 	}
 }
