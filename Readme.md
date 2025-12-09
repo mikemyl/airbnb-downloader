@@ -17,6 +17,7 @@ Currently, it extracts:
   * Number of beds
   * Number of baths
 - Amenities
+- Reviews
 
 ### Dependencies
 
@@ -76,7 +77,17 @@ Example usage and output:
       "Iron",
       "Laptop friendly workspace",
       "TV"
-    ]
+    ],
+    "reviews": {
+      "score": 4.9,
+      "numberOfReviews": 10,
+      "scoreCleanliness": 5,
+      "scoreAccuracy": 5,
+      "scoreCommunication": 5,
+      "scoreLocation": 5,
+      "scoreCheckIn": 5,
+      "scoreValue": 5
+    }
   }  
 ]
 ```
