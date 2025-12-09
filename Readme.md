@@ -10,7 +10,6 @@ Currently, it extracts:
 - Title
 - Description (split into paragraphs)
 - Photos
-- Reviews
 - RoomInfo
   * Number of guests
   * Number of bedrooms
