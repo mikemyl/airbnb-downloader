@@ -163,20 +163,17 @@ func getScoreAndNumberOfReviews(elem *rod.Element) (float64, int, error) {
 }
 
 func getReviewScore(reviewType string, element *rod.Element) (float64, error) {
-	reviewElement, err := element.ElementR("div", reviewType)
+	// Use regex anchors to match exactly the review type text
+	pattern := "^" + reviewType + "$"
+	reviewElement, err := element.ElementR("div", pattern)
 	if err != nil {
 		return 0, fmt.Errorf("failed to find %s review: %w", reviewType, err)
 	}
-	parent, err := reviewElement.Parent()
+	sibling, err := reviewElement.Next()
 	if err != nil {
-		return 0, fmt.Errorf("failed to find parent of %s review: %w", reviewType, err)
+		return 0, fmt.Errorf("failed to get next sibling of %s review: %w", reviewType, err)
 	}
-	children, err := parent.Elements("div")
-	if err != nil {
-		return 0, fmt.Errorf("failed to find children of parent of %s review: %w", reviewType, err)
-	}
-	lastChild := children[len(children)-1]
-	text, err := lastChild.Text()
+	text, err := sibling.Text()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get text of last child of parent of %s review: %w", reviewType, err)
 	}
