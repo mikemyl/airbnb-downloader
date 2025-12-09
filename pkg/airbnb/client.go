@@ -1,6 +1,8 @@
 package airbnb
 
 import (
+	"fmt"
+
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 )
@@ -34,7 +36,10 @@ func WithRodURL(rodURL string) Option {
 
 // NewClient creates a new Airbnb client with the given configuration.
 func NewClient(opts ...Option) (*Client, error) {
-	c := &config{}
+	c := &config{
+		RodURL:   "",
+		HeadLess: false,
+	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			return nil, err
@@ -46,14 +51,18 @@ func NewClient(opts ...Option) (*Client, error) {
 	}
 
 	return &Client{
-		browser: browser,
+		browser:                            browser,
+		hasGonePastTheTheTranslationDialog: false,
 	}, nil
 }
 
 // Close closes the browser connection.
 func (c *Client) Close() error {
 	if c.browser != nil {
-		return c.browser.Close()
+		err := c.browser.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close browser: %w", err)
+		}
 	}
 	return nil
 }
@@ -65,7 +74,7 @@ func createBrowser(config *config) (*rod.Browser, error) {
 		browser := rod.New().ControlURL(u)
 		err := browser.Connect()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to connect to browser: %w", err)
 		}
 		return browser, nil
 	}
@@ -73,7 +82,7 @@ func createBrowser(config *config) (*rod.Browser, error) {
 	// Connect to remote Rod service
 	browser := rod.New().ControlURL("ws://" + config.RodURL)
 	if err := browser.Connect(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to remote Rod service: %w", err)
 	}
 	return browser, nil
 }

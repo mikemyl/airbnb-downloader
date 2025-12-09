@@ -11,12 +11,16 @@ import (
 )
 
 func (c *Client) GetReviews(listingURL string) (*Reviews, error) {
-	_, err := url.Parse(listingURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse listing url: %w", err)
+	target := proto.TargetCreateTarget{
+		URL:                     listingURL,
+		Width:                   nil,
+		Height:                  nil,
+		BrowserContextID:        "",
+		EnableBeginFrameControl: false,
+		NewWindow:               false,
+		Background:              false,
+		ForTab:                  false,
 	}
-
-	target := proto.TargetCreateTarget{URL: listingURL}
 	page, err := c.browser.Page(target)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create page: %w", err)
@@ -25,8 +29,13 @@ func (c *Client) GetReviews(listingURL string) (*Reviews, error) {
 		_ = page.Close()
 	}(page)
 
+	_, err = url.Parse(listingURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse listing url: %w", err)
+	}
+
 	if err = page.WaitLoad(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
 	}
 
 	if !c.hasGonePastTheTheTranslationDialog {
@@ -43,35 +52,42 @@ func (c *Client) GetReviews(listingURL string) (*Reviews, error) {
 }
 
 func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
-	searchResults, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='REVIEWS_DEFAULT']")
-	if err != nil {
-		return nil, fmt.Errorf("failed to find reviews link: %w", err)
+	reviews := Reviews{
+		Score:              0,
+		NumberOfReviews:    0,
+		ScoreCleanliness:   0,
+		ScoreAccuracy:      0,
+		ScoreCommunication: 0,
+		ScoreLocation:      0,
+		ScoreCheckIn:       0,
+		ScoreValue:         0,
 	}
-	reviewsDiv := searchResults.First
-	scoreAndNumberOfReviews, err := reviewsDiv.CancelTimeout().Timeout(defaultWaitTime).Element("h2 > div > span")
+	_, err := page.Timeout(defaultWaitTime).Race().Element("div[data-section-id='REVIEWS_DEFAULT'] h2 > div > span").Handle(
+		func(e *rod.Element) error {
+			score, nReviews, err2 := getScoreAndNumberOfReviews(e)
+			if err2 != nil {
+				return err2
+			}
+			reviews.Score = score
+			reviews.NumberOfReviews = nReviews
+			return nil
+		},
+	).Element("div[data-section-id='REVIEWS_DEFAULT'] div > h2 > span").Handle(
+		func(e *rod.Element) error {
+			score, nReviews, err2 := getScoreAndNumberOfReviewsForGuestFavorite(e)
+			if err2 != nil {
+				return err2
+			}
+			reviews.Score = score
+			reviews.NumberOfReviews = nReviews
+			return nil
+		},
+	).Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to find score and number of reviews: %w", err)
-	}
-	scoreAndNumberOfReviewsText, err := scoreAndNumberOfReviews.Text()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get score and number of reviews text: %w", err)
-	}
-	removedReviewsText := strings.Split(scoreAndNumberOfReviewsText, " reviews")[0]
-	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, " · ")
-	if len(scoreAndNumberOfReviewsParts) != 2 {
-		return nil, fmt.Errorf("failed to parse score and number of reviews: %s", scoreAndNumberOfReviewsText)
-	}
-	var reviews Reviews
-	reviews.Score, err = strconv.ParseFloat(scoreAndNumberOfReviewsParts[0], 64)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse score: %w", err)
-	}
-	reviews.NumberOfReviews, err = strconv.Atoi(scoreAndNumberOfReviewsParts[1])
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse number of reviews: %w", err)
+		return nil, fmt.Errorf("failed to get score and number of reviews: %w", err)
 	}
 
-	searchResults, err = page.Timeout(defaultWaitTime).Search("div[data-section-id='REVIEWS_DEFAULT'] div[data-testid='content-scroller']")
+	searchResults, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='REVIEWS_DEFAULT'] div[data-testid='content-scroller']")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find reviews scroller: %w", err)
 	}
@@ -101,6 +117,49 @@ func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
 		return nil, fmt.Errorf("failed to get value review score: %w", err)
 	}
 	return &reviews, nil
+}
+
+func getScoreAndNumberOfReviewsForGuestFavorite(elem *rod.Element) (float64, int, error) {
+	scoreAndNumberOfReviewsText, err := elem.CancelTimeout().Text()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get score and number of reviews text: %w", err)
+	}
+	removedRatedText := strings.ReplaceAll(scoreAndNumberOfReviewsText, "Rated ", "")
+	removedReviewsText := strings.ReplaceAll(removedRatedText, " reviews.", "")
+	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, " out of 5 from ")
+	if len(scoreAndNumberOfReviewsParts) != 2 {
+		return 0, 0, fmt.Errorf("failed to parse score and number of reviews: %s", scoreAndNumberOfReviewsText)
+	}
+	score, err := strconv.ParseFloat(scoreAndNumberOfReviewsParts[0], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse score: %w", err)
+	}
+	reviews, err := strconv.Atoi(scoreAndNumberOfReviewsParts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse number of reviews: %w", err)
+	}
+	return score, reviews, nil
+}
+
+func getScoreAndNumberOfReviews(elem *rod.Element) (float64, int, error) {
+	scoreAndNumberOfReviewsText, err := elem.CancelTimeout().Text()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get score and number of reviews text: %w", err)
+	}
+	removedReviewsText := strings.Split(scoreAndNumberOfReviewsText, " reviews")[0]
+	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, " · ")
+	if len(scoreAndNumberOfReviewsParts) != 2 {
+		return 0, 0, fmt.Errorf("failed to parse score and number of reviews: %s", scoreAndNumberOfReviewsText)
+	}
+	score, err := strconv.ParseFloat(scoreAndNumberOfReviewsParts[0], 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse score: %w", err)
+	}
+	reviews, err := strconv.Atoi(scoreAndNumberOfReviewsParts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse number of reviews: %w", err)
+	}
+	return score, reviews, nil
 }
 
 func getReviewScore(reviewType string, element *rod.Element) (float64, error) {

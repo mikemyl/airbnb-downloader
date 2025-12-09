@@ -12,5 +12,9 @@ func (c *Client) GetTitle(page *rod.Page) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to find title: %w", err)
 	}
-	return searchResults.First.Text()
+	text, err := searchResults.First.Text()
+	if err != nil {
+		return "", fmt.Errorf("failed to get title text: %w", err)
+	}
+	return text, nil
 }

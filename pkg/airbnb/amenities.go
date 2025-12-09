@@ -15,7 +15,16 @@ func (c *Client) GetAmenities(listingURL string) ([]string, error) {
 		return nil, fmt.Errorf("failed to parse listing url: %w", err)
 	}
 
-	target := proto.TargetCreateTarget{URL: listingURL}
+	target := proto.TargetCreateTarget{
+		URL:                     listingURL,
+		Width:                   nil,
+		Height:                  nil,
+		BrowserContextID:        "",
+		EnableBeginFrameControl: false,
+		NewWindow:               false,
+		Background:              false,
+		ForTab:                  false,
+	}
 	page, err := c.browser.Page(target)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create page: %w", err)
@@ -25,7 +34,7 @@ func (c *Client) GetAmenities(listingURL string) ([]string, error) {
 	}(page)
 
 	if err = page.WaitLoad(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
 	}
 
 	if !c.hasGonePastTheTheTranslationDialog {

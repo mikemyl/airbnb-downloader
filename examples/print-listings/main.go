@@ -16,7 +16,7 @@ func main() {
 	defer client.Close()
 
 	listingUrls := []string{
-		"https://www.airbnb.com/rooms/51573244?source_impression_id=p3_1763552182_P3BLEoXunPK0xs6K",
+		"https://www.airbnb.com/rooms/1438479641258683118?guests=1&adults=1&s=67&unique_share_id=cb927f57-8b9a-447d-ad11-6428ae4223d9",
 		"https://www.airbnb.com/rooms/51573207?source_impression_id=p3_1764364702_P3PINb00ZWafPed0",
 	}
 	for _, listingURL := range listingUrls {
