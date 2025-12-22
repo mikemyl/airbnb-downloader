@@ -43,7 +43,7 @@ func (c *Client) GetReviews(listingURL string) (*Reviews, error) {
 		c.hasGonePastTheTheTranslationDialog = true
 	}
 
-	reviews, err := c.getReviews(page)
+	reviews, err := c.getReviews(page, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reviews: %w", err)
 	}
@@ -51,7 +51,7 @@ func (c *Client) GetReviews(listingURL string) (*Reviews, error) {
 	return reviews, nil
 }
 
-func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
+func (c *Client) getReviews(page *rod.Page, locale Locale) (*Reviews, error) {
 	reviews := Reviews{
 		Score:              0,
 		NumberOfReviews:    0,
@@ -64,7 +64,7 @@ func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
 	}
 	_, err := page.Timeout(defaultWaitTime).Race().Element("div[data-section-id='REVIEWS_DEFAULT'] h2 > div > span").Handle(
 		func(e *rod.Element) error {
-			score, nReviews, err2 := getScoreAndNumberOfReviews(e)
+			score, nReviews, err2 := getScoreAndNumberOfReviews(e, locale)
 			if err2 != nil {
 				return err2
 			}
@@ -74,7 +74,7 @@ func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
 		},
 	).Element("div[data-section-id='REVIEWS_DEFAULT'] div > h2 > span").Handle(
 		func(e *rod.Element) error {
-			score, nReviews, err2 := getScoreAndNumberOfReviewsForGuestFavorite(e)
+			score, nReviews, err2 := getScoreAndNumberOfReviewsForGuestFavorite(e, locale)
 			if err2 != nil {
 				return err2
 			}
@@ -92,45 +92,46 @@ func (c *Client) getReviews(page *rod.Page) (*Reviews, error) {
 		return nil, fmt.Errorf("failed to find reviews scroller: %w", err)
 	}
 	scroller := searchResults.First.CancelTimeout()
-	reviews.ScoreCleanliness, err = getReviewScore("Cleanliness", scroller)
+	reviews.ScoreCleanliness, err = getReviewScore(getCleaningnessText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cleanliness review score: %w", err)
 	}
-	reviews.ScoreAccuracy, err = getReviewScore("Accuracy", scroller)
+	reviews.ScoreAccuracy, err = getReviewScore(getAccuracyText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get accuracy review score: %w", err)
 	}
-	reviews.ScoreCommunication, err = getReviewScore("Communication", scroller)
+	reviews.ScoreCommunication, err = getReviewScore(getCommunicationText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get communication review score: %w", err)
 	}
-	reviews.ScoreLocation, err = getReviewScore("Location", scroller)
+	reviews.ScoreLocation, err = getReviewScore(getLocationText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get location review score: %w", err)
 	}
-	reviews.ScoreCheckIn, err = getReviewScore("Check-in", scroller)
+	reviews.ScoreCheckIn, err = getReviewScore(getCommunicationText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get check-in review score: %w", err)
 	}
-	reviews.ScoreValue, err = getReviewScore("Value", scroller)
+	reviews.ScoreValue, err = getReviewScore(getPriceText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get value review score: %w", err)
 	}
 	return &reviews, nil
 }
 
-func getScoreAndNumberOfReviewsForGuestFavorite(elem *rod.Element) (float64, int, error) {
+func getScoreAndNumberOfReviewsForGuestFavorite(elem *rod.Element, locale Locale) (float64, int, error) {
 	scoreAndNumberOfReviewsText, err := elem.CancelTimeout().Text()
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to get score and number of reviews text: %w", err)
 	}
-	removedRatedText := strings.ReplaceAll(scoreAndNumberOfReviewsText, "Rated ", "")
-	removedReviewsText := strings.ReplaceAll(removedRatedText, " reviews.", "")
-	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, " out of 5 from ")
+	removedRatedText := strings.ReplaceAll(scoreAndNumberOfReviewsText, getRatedText(locale), "")
+	removedReviewsText := strings.ReplaceAll(removedRatedText, getReviewsText(locale)+".", "")
+	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, getOutOfFiveText(locale))
 	if len(scoreAndNumberOfReviewsParts) != 2 {
 		return 0, 0, fmt.Errorf("failed to parse score and number of reviews: %s", scoreAndNumberOfReviewsText)
 	}
-	score, err := strconv.ParseFloat(scoreAndNumberOfReviewsParts[0], 64)
+	normalizedScore := translateDecimal(scoreAndNumberOfReviewsParts[0], locale)
+	score, err := strconv.ParseFloat(normalizedScore, 64)
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to parse score: %w", err)
 	}
@@ -141,17 +142,17 @@ func getScoreAndNumberOfReviewsForGuestFavorite(elem *rod.Element) (float64, int
 	return score, reviews, nil
 }
 
-func getScoreAndNumberOfReviews(elem *rod.Element) (float64, int, error) {
+func getScoreAndNumberOfReviews(elem *rod.Element, locale Locale) (float64, int, error) {
 	scoreAndNumberOfReviewsText, err := elem.CancelTimeout().Text()
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to get score and number of reviews text: %w", err)
 	}
-	removedReviewsText := strings.Split(scoreAndNumberOfReviewsText, " reviews")[0]
+	removedReviewsText := strings.Split(scoreAndNumberOfReviewsText, getReviewsText(locale))[0]
 	scoreAndNumberOfReviewsParts := strings.Split(removedReviewsText, " · ")
 	if len(scoreAndNumberOfReviewsParts) != 2 {
 		return 0, 0, fmt.Errorf("failed to parse score and number of reviews: %s", scoreAndNumberOfReviewsText)
 	}
-	score, err := strconv.ParseFloat(scoreAndNumberOfReviewsParts[0], 64)
+	score, err := strconv.ParseFloat(translateDecimal(scoreAndNumberOfReviewsParts[0], locale), 64)
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to parse score: %w", err)
 	}
@@ -162,7 +163,7 @@ func getScoreAndNumberOfReviews(elem *rod.Element) (float64, int, error) {
 	return score, reviews, nil
 }
 
-func getReviewScore(reviewType string, element *rod.Element) (float64, error) {
+func getReviewScore(reviewType string, element *rod.Element, locale Locale) (float64, error) {
 	// Use regex anchors to match exactly the review type text
 	pattern := "^" + reviewType + "$"
 	reviewElement, err := element.ElementR("div", pattern)
@@ -177,7 +178,7 @@ func getReviewScore(reviewType string, element *rod.Element) (float64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to get text of last child of parent of %s review: %w", reviewType, err)
 	}
-	score, err := strconv.ParseFloat(text, 64)
+	score, err := strconv.ParseFloat(translateDecimal(text, locale), 64)
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse %s review score: %w", reviewType, err)
 	}

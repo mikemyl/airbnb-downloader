@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/input"
 )
 
 const (
@@ -31,7 +30,7 @@ func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to find slideshow div: %w", err)
 	}
-	if err = slideShowDiv.WaitLoad(); err != nil {
+	if _, err = slideShowDiv.WaitInteractable(); err != nil {
 		return nil, fmt.Errorf("failed to wait for slideshow to load: %w", err)
 	}
 
@@ -49,33 +48,44 @@ func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
 }
 
 func showAllPhotos(page *rod.Page) error {
-	div, err := page.Timeout(defaultWaitTime).ElementR("button > div > div", "Show all photos")
+	searchResult, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='HERO_DEFAULT'] button")
 	if err != nil {
 		return fmt.Errorf("failed to find 'Show all photos' button: %w", err)
 	}
+	allButtons, err := searchResult.All()
+	if err != nil {
+		return fmt.Errorf("failed to get all buttons: %w", err)
+	}
 
-	parent, err := div.CancelTimeout().Parent()
+	err = allButtons.Last().CancelTimeout().Timeout(defaultWaitTime).Click("left", 1)
 	if err != nil {
-		return fmt.Errorf("failed to find parent of 'Show all photos' button: %w", err)
-	}
-	button, err := parent.Parent()
-	if err != nil {
-		return fmt.Errorf("failed to find parent/parent of 'Show all photos' button: %w", err)
-	}
-	if err = button.Timeout(2*defaultWaitTime).Click("left", 1); err != nil {
 		return fmt.Errorf("failed to click 'Show all photos' button: %w", err)
 	}
 	return nil
 }
 
 func closeTranslationOnDialog(page *rod.Page) error {
-	modal, err := page.Timeout(2 * defaultWaitTime).Search("div[data-testid='modal-container']")
+	modal, err := page.Timeout(2 * defaultWaitTime).Search("div[data-testid='modal-container'] div[role='dialog'] button")
 	if err != nil {
 		return fmt.Errorf("failed to find close translation modalContainer: %w", err)
 	}
-	modal.First.MustType(input.Escape)
-	time.Sleep(1 * time.Second)
-	err = page.Timeout(4 * time.Second).WaitLoad()
+	err = modal.First.CancelTimeout().Timeout(shortWaitTime).Click("left", 1)
+	if err != nil {
+		return fmt.Errorf("failed to click close translation modal: %w", err)
+	}
+	buttons, err := page.Timeout(defaultWaitTime).Search("div[data-testid='main-cookies-banner-container'] button")
+	if err != nil {
+		return fmt.Errorf("failed to find close cookies banner button: %w", err)
+	}
+	allButtons, err := buttons.All()
+	if err != nil {
+		return fmt.Errorf("failed to get all buttons: %w", err)
+	}
+	err = allButtons.Last().CancelTimeout().Timeout(defaultWaitTime).Click("left", 1)
+	if err != nil {
+		return fmt.Errorf("failed to click close cookies banner: %w", err)
+	}
+	err = page.Timeout(2 * time.Second).WaitLoad()
 	if err != nil {
 		return fmt.Errorf("failed to wait for page to load after closing translation modal: %w", err)
 	}
@@ -99,11 +109,24 @@ func clickFirstPhoto(page *rod.Page) error {
 }
 
 func closeAndGoBackToMainPage(page *rod.Page) error {
-	closeButton, err := page.Timeout(defaultWaitTime).ElementR("button", "Close")
+	searchResults, err := page.Timeout(defaultWaitTime).Search("div[data-testid='modal-container'] button > span > span > svg")
 	if err != nil {
 		return fmt.Errorf("failed to find close button: %w", err)
 	}
-	if err = closeButton.CancelTimeout().Click("left", 1); err != nil {
+	svg := searchResults.First
+	firstSpan, err := svg.CancelTimeout().Parent()
+	if err != nil {
+		return fmt.Errorf("failed to get parent of svg: %w", err)
+	}
+	secondSpan, err := firstSpan.Parent()
+	if err != nil {
+		return fmt.Errorf("failed to get parent of first span: %w", err)
+	}
+	closeButton, err := secondSpan.Parent()
+	if err != nil {
+		return fmt.Errorf("failed to get parent of second span: %w", err)
+	}
+	if err = closeButton.Timeout(defaultWaitTime).Click("left", 1); err != nil {
 		return fmt.Errorf("failed to click close button: %w", err)
 	}
 
@@ -119,10 +142,9 @@ func closeAndGoBackToMainPage(page *rod.Page) error {
 func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 	var photos []*url.URL
 
-	// Iterate through all images in the slideshow
 	hasMorePhotos := true
 	for hasMorePhotos {
-		_ = page.WaitIdle(shortWaitTime)
+		_ = page.WaitIdle(defaultWaitTime)
 		imageElementSearch, err := page.Timeout(defaultWaitTime * 2).Search("div[data-testid='photo-viewer-slideshow-desktop'] img")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find image element: %w", err)
@@ -145,15 +167,24 @@ func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 
 		photos = append(photos, photoURL)
 
-		buttonSearch, err := page.Timeout(shortWaitTime * 2).Search("div[data-testid='modal-container'] button[aria-label='Next']")
+		buttonSearch, err := page.Timeout(defaultWaitTime).Search("div[data-testid='photo-viewer-slideshow-desktop'] button")
 		if err != nil {
 			hasMorePhotos = false
 			continue
 		}
 
-		button := buttonSearch.First
+		allButtons, err := buttonSearch.All()
+		if err != nil || (len(photos) > 1 && buttonSearch.ResultCount == 1) {
+			hasMorePhotos = false
+			continue
+		}
+		nextButton := allButtons.Last().CancelTimeout().Timeout(shortWaitTime)
+		if nextButton == nil {
+			hasMorePhotos = false
+			continue
+		}
 
-		if err = button.CancelTimeout().Click("left", 1); err != nil {
+		if err = nextButton.CancelTimeout().Click("left", 1); err != nil {
 			return nil, fmt.Errorf("failed to click next button: %w", err)
 		}
 	}

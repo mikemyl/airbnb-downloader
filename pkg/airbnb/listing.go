@@ -8,6 +8,51 @@ import (
 	"github.com/go-rod/rod/lib/proto"
 )
 
+func (c *Client) GetLocalizedListing(listingURL string, locale Locale) (*Listing, error) {
+	parsedURL, err := url.Parse(listingURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse listing url: %w", err)
+	}
+
+	acceptLanguage, err := mapLocaleToAcceptLanguage(locale)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map locale to accept language: %w", err)
+	}
+	queryValues := parsedURL.Query()
+	queryValues.Set("locale", acceptLanguage)
+	parsedURL.RawQuery = queryValues.Encode()
+
+	target := proto.TargetCreateTarget{
+		URL:                     parsedURL.String(),
+		Width:                   nil,
+		Height:                  nil,
+		BrowserContextID:        "",
+		EnableBeginFrameControl: false,
+		NewWindow:               false,
+		Background:              false,
+		ForTab:                  false,
+	}
+
+	page, err := c.browser.Page(target)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create page: %w", err)
+	}
+	defer func(page *rod.Page) {
+		_ = page.Close()
+	}(page)
+
+	if err = page.WaitLoad(); err != nil {
+		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
+	}
+
+	if !c.hasGonePastTheTheTranslationDialog {
+		_ = closeTranslationOnDialog(page)
+		c.hasGonePastTheTheTranslationDialog = true
+	}
+
+	return c.getListing(page, parsedURL, locale)
+}
+
 // GetListing extracts all information from an Airbnb listing page.
 func (c *Client) GetListing(listingURL string) (*Listing, error) {
 	parsedURL, err := url.Parse(listingURL)
@@ -42,15 +87,14 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		c.hasGonePastTheTheTranslationDialog = true
 	}
 
+	return c.getListing(page, parsedURL, English)
+}
+
+func (c *Client) getListing(page *rod.Page, parsedURL *url.URL, locale Locale) (*Listing, error) {
 	title, err := c.GetTitle(page)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get title: %w", err)
 	}
-
-	// reviews, err := c.getReviews(page)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to get reviews: %w", err)
-	// }
 	roomInfo, err := c.getRoomInfo(page)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get room info: %w", err)
@@ -72,12 +116,12 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		return nil, fmt.Errorf("failed to get description: %w", err)
 	}
 
-	amenities, err := c.getAmenities(page)
+	amenities, err := c.getAmenities(page, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get amenities: %w", err)
 	}
 
-	reviews, err := c.getReviews(page)
+	reviews, err := c.getReviews(page, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reviews: %w", err)
 	}
@@ -109,4 +153,15 @@ func removeDuplicates(photos []*url.URL) []*url.URL {
 		}
 	}
 	return noDups
+}
+
+func mapLocaleToAcceptLanguage(locale Locale) (string, error) {
+	switch locale {
+	case English:
+		return "en", nil
+	case Greek:
+		return "el", nil
+	default:
+		return "", fmt.Errorf("unsupported locale: %s. Supported locales are: en, el", locale)
+	}
 }

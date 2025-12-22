@@ -28,3 +28,10 @@ type Listing struct {
 	Amenities   []string  `json:"amenities"`
 	Reviews     *Reviews  `json:"reviews"`
 }
+
+type Locale string
+
+const (
+	English Locale = "en"
+	Greek   Locale = "el"
+)

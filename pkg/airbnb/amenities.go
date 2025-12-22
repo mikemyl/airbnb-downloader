@@ -42,7 +42,7 @@ func (c *Client) GetAmenities(listingURL string) ([]string, error) {
 		c.hasGonePastTheTheTranslationDialog = true
 	}
 
-	amenities, err := c.getAmenities(page)
+	amenities, err := c.getAmenities(page, English)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get amenities: %w", err)
 	}
@@ -50,7 +50,7 @@ func (c *Client) GetAmenities(listingURL string) ([]string, error) {
 	return amenities, nil
 }
 
-func (c *Client) getAmenities(page *rod.Page) ([]string, error) {
+func (c *Client) getAmenities(page *rod.Page, locale Locale) ([]string, error) {
 	amenitiesModal, err := openAmenitiesModal(page)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (c *Client) getAmenities(page *rod.Page) ([]string, error) {
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to get amenityCategory text: %w", err2)
 		}
-		if amenityCategory == "Not included" {
+		if amenityCategory == getAmenityNotAvailableTranslation(locale) {
 			break
 		}
 
