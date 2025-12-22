@@ -144,12 +144,10 @@ func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 
 	hasMorePhotos := true
 	for hasMorePhotos {
-		_ = page.WaitIdle(defaultWaitTime)
-		imageElementSearch, err := page.Timeout(defaultWaitTime * 2).Search("div[data-testid='photo-viewer-slideshow-desktop'] img")
+		imageElement, err := getImageElement(page)
 		if err != nil {
-			return nil, fmt.Errorf("failed to find image element: %w", err)
+			return nil, err
 		}
-		imageElement := imageElementSearch.First
 		imageSrc, err := imageElement.CancelTimeout().Attribute("src")
 		if err != nil {
 			return nil, fmt.Errorf("failed to get image src: %w", err)
@@ -189,4 +187,23 @@ func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 		}
 	}
 	return photos, nil
+}
+
+// getImageElement retries a few times to find the image element. This is due to an intermittent *cdp.Error : https://github.com/chrome-php/chrome/issues/469
+func getImageElement(page *rod.Page) (*rod.Element, error) {
+	nreTries := 3
+	var err error
+	var imageElementSearch *rod.SearchResult
+	for i := 0; i < nreTries; i++ {
+		imageElementSearch, err = page.Timeout(defaultWaitTime).Search("div[data-testid='photo-viewer-slideshow-desktop'] img")
+		if err == nil {
+			break
+		}
+		nreTries--
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to find image element: %w", err)
+	}
+	imageElement := imageElementSearch.First
+	return imageElement, nil
 }
