@@ -3,13 +3,12 @@ package airbnb
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/go-rod/rod"
 )
 
 func (c *Client) getDescription(page *rod.Page) ([]string, error) {
-	descButtonSearch, err := page.Timeout(4 * time.Second).Search("div[data-section-id='DESCRIPTION_DEFAULT'] > div > button")
+	descButtonSearch, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='DESCRIPTION_DEFAULT'] > div > button")
 	if err != nil {
 		return maybeReadDescriptionSpan(page)
 	}
@@ -70,7 +69,7 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 }
 
 func maybeReadDescriptionSpan(page *rod.Page) ([]string, error) {
-	descriptionSpanSearch, err := page.Timeout(4 * time.Second).Search("div[data-section-id='DESCRIPTION_DEFAULT'] span")
+	descriptionSpanSearch, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='DESCRIPTION_DEFAULT'] span")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find description button or span: %w", err)
 	}

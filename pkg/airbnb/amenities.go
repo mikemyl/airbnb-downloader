@@ -3,7 +3,6 @@ package airbnb
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
@@ -105,7 +104,7 @@ func (c *Client) getAmenities(page *rod.Page, locale Locale) ([]string, error) {
 }
 
 func openAmenitiesModal(page *rod.Page) (*rod.Element, error) {
-	amenitiesButtonSearch, err := page.Timeout(4 * time.Second).Search("div[data-section-id='AMENITIES_DEFAULT'] div > button")
+	amenitiesButtonSearch, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='AMENITIES_DEFAULT'] div > button")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find amenities button: %w", err)
 	}
