@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	defaultWaitTime = 20 * time.Second
-	shortWaitTime   = 2000 * time.Millisecond
+	defaultWaitTime = 60 * time.Second
+	shortWaitTime   = 6000 * time.Millisecond
 )
 
 func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
