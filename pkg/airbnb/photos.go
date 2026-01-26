@@ -65,7 +65,7 @@ func showAllPhotos(page *rod.Page) error {
 }
 
 func closeTranslationOnDialog(page *rod.Page) error {
-	modal, err := page.Timeout(shortWaitTime).Search("div[data-testid='modal-container'] div[role='dialog'] button")
+	modal, err := page.Timeout(defaultWaitTime).Search("div[data-testid='modal-container'] div[role='dialog'] button")
 	if err != nil {
 		return fmt.Errorf("failed to find close translation modalContainer: %w", err)
 	}
