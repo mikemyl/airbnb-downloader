@@ -100,14 +100,17 @@ func (c *Client) getListing(page *rod.Page, parsedURL *url.URL, locale Locale) (
 		return nil, fmt.Errorf("failed to get room info: %w", err)
 	}
 
-	photos, err := c.getPhotos(page)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get photos: %w", err)
-	}
-	photos = removeDuplicates(photos)
-	err = page.WaitIdle(defaultWaitTime)
-	if err != nil {
-		return nil, fmt.Errorf("failed to wait for page to load after getting photos: %w", err)
+	var photos []*url.URL
+	if locale == English {
+		photos, err = c.getPhotos(page)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get photos: %w", err)
+		}
+		photos = removeDuplicates(photos)
+		err = page.WaitIdle(defaultWaitTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to wait for page to load after getting photos: %w", err)
+		}
 	}
 
 	// Extract description
