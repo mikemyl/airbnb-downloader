@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	defaultWaitTime = 60 * time.Second
-	shortWaitTime   = 6000 * time.Millisecond
+	defaultWaitTime = 10 * time.Second
+	shortWaitTime   = 3000 * time.Millisecond
 )
 
 func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
@@ -65,7 +65,7 @@ func showAllPhotos(page *rod.Page) error {
 }
 
 func closeTranslationOnDialog(page *rod.Page) error {
-	modal, err := page.Timeout(2 * defaultWaitTime).Search("div[data-testid='modal-container'] div[role='dialog'] button")
+	modal, err := page.Timeout(shortWaitTime).Search("div[data-testid='modal-container'] div[role='dialog'] button")
 	if err != nil {
 		return fmt.Errorf("failed to find close translation modalContainer: %w", err)
 	}
@@ -139,24 +139,30 @@ func closeAndGoBackToMainPage(page *rod.Page) error {
 	return nil
 }
 
+//nolint:gocognit // refactor it if it gets too complex
 func parsePhotoUrls(page *rod.Page) ([]*url.URL, error) {
 	var photos []*url.URL
 
 	hasMorePhotos := true
+	previousImageSrc := ""
+	currentImageSrc := ""
 	for hasMorePhotos {
-		imageElement, err := getImageElement(page)
-		if err != nil {
-			return nil, err
+		for currentImageSrc == previousImageSrc {
+			imageElement, err := getImageElement(page)
+			if err != nil {
+				return nil, err
+			}
+			imageSrc, err := imageElement.CancelTimeout().Attribute("src")
+			if err != nil {
+				return nil, fmt.Errorf("failed to get image src: %w", err)
+			}
+			if imageSrc == nil {
+				return nil, errors.New("image src is nil")
+			}
+			currentImageSrc = *imageSrc
 		}
-		imageSrc, err := imageElement.CancelTimeout().Attribute("src")
-		if err != nil {
-			return nil, fmt.Errorf("failed to get image src: %w", err)
-		}
-		if imageSrc == nil {
-			return nil, errors.New("image src is nil")
-		}
-
-		sourceWithoutQueryParams := strings.Split(*imageSrc, "?")[0]
+		previousImageSrc = currentImageSrc
+		sourceWithoutQueryParams := strings.Split(currentImageSrc, "?")[0]
 
 		photoURL, err := url.Parse(sourceWithoutQueryParams)
 		if err != nil {
