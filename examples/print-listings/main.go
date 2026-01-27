@@ -16,12 +16,12 @@ func main() {
 	defer client.Close()
 
 	listingUrls := []string{
-		"https://www.airbnb.com/rooms/1055756193648378804?guests=1&adults=1&s=67&unique_share_id=0cb87bd0-15a8-4cf9-b8f2-88b0ea1905d0",
+		"https://www.airbnb.com/rooms/1438479641258683118",
 	}
 	for _, listingURL := range listingUrls {
 		log.Printf("\n\n === Fetching listing: %s === \n\n", listingURL)
 
-		listing, listingErr := client.GetListing(listingURL)
+		listing, listingErr := client.GetLocalizedListing(listingURL, airbnb.Greek)
 		if listingErr != nil {
 			log.Printf("Failed to get listing: %v\n", listingErr)
 			runtime.Goexit()

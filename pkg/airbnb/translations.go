@@ -111,3 +111,14 @@ func getAmenityNotAvailableTranslation(locale Locale) string {
 		return "Not included"
 	}
 }
+
+func getRegistrationDetailsText(locale Locale) string {
+	switch locale {
+	case English:
+		return "Registration Details"
+	case Greek:
+		return "Στοιχεία εγγραφής"
+	default:
+		return "Registration Details"
+	}
+}

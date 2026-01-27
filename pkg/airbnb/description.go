@@ -7,7 +7,7 @@ import (
 	"github.com/go-rod/rod"
 )
 
-func (c *Client) getDescription(page *rod.Page) ([]string, error) {
+func (c *Client) getDescription(page *rod.Page, locale Locale) ([]string, error) {
 	descButtonSearch, err := page.Timeout(defaultWaitTime).Search("div[data-section-id='DESCRIPTION_DEFAULT'] > div > button")
 	if err != nil {
 		return maybeReadDescriptionSpan(page)
@@ -27,9 +27,38 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 		return nil, fmt.Errorf("failed to find description modal: %w", err)
 	}
 
-	sections, err := descriptionModal.CancelTimeout().Elements("section")
+	description, err := getDescription(descriptionModal, locale)
+	if err != nil {
+		return nil, err
+	}
+
+	err = navigateBack(page)
+	if err != nil {
+		return nil, fmt.Errorf("failed to close description and go back to main page: %w", err)
+	}
+
+	return description, nil
+}
+
+func getDescription(descriptionModal *rod.Element, locale Locale) ([]string, error) {
+	descriptionModal = descriptionModal.CancelTimeout()
+	sections, err := descriptionModal.Timeout(shortWaitTime).Elements("section")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find description sections: %w", err)
+	}
+
+	if len(sections) == 0 {
+		descriptionSpan, err2 := descriptionModal.Timeout(shortWaitTime).Element("span")
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to find description span: %w", err2)
+		}
+		text, err2 := descriptionSpan.Text()
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to get description span text: %w", err2)
+		}
+		textWithoutRegistrationDetails := strings.Split(text, getRegistrationDetailsText(locale))[0]
+		textWithoutRegistrationDetails = strings.TrimSpace(textWithoutRegistrationDetails)
+		return []string{textWithoutRegistrationDetails}, nil
 	}
 
 	var description []string
@@ -40,7 +69,7 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 		h2, err2 := section.Element("h2")
 		if err2 == nil {
 			headerText, err3 := h2.Text()
-			if err3 == nil && strings.Contains(headerText, "Registration Details") {
+			if err3 == nil && strings.Contains(headerText, getRegistrationDetailsText(locale)) {
 				break
 			}
 		}
@@ -59,12 +88,6 @@ func (c *Client) getDescription(page *rod.Page) ([]string, error) {
 			description = append(description, text)
 		}
 	}
-
-	err = navigateBack(page)
-	if err != nil {
-		return nil, fmt.Errorf("failed to close description and go back to main page: %w", err)
-	}
-
 	return description, nil
 }
 

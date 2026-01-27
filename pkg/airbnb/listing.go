@@ -114,7 +114,7 @@ func (c *Client) getListing(page *rod.Page, parsedURL *url.URL, locale Locale) (
 	}
 
 	// Extract description
-	description, err := c.getDescription(page)
+	description, err := c.getDescription(page, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get description: %w", err)
 	}
