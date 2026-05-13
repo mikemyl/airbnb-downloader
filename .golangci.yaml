@@ -297,6 +297,13 @@ linters:
           # Default: true
           skipRecvDeref: false
 
+    gosec:
+      # Disable specific gosec rules.
+      # G706 (log injection via taint analysis): noisy for CLI tools where operator-supplied
+      # input is logged for debugging; log forging is not a meaningful risk.
+      excludes:
+        - G706
+
     govet:
       # Enable all analyzers.
       # Default: false

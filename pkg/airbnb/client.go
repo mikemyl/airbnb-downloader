@@ -9,8 +9,8 @@ import (
 
 // Client represents an Airbnb scraper client.
 type Client struct {
-	browser                            *rod.Browser
-	hasGonePastTheTheTranslationDialog bool
+	browser           *rod.Browser
+	bannerIsClosedMap map[Locale]bool
 }
 
 type config struct {
@@ -49,10 +49,11 @@ func NewClient(opts ...Option) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	bannerIsClosedMap := make(map[Locale]bool)
 
 	return &Client{
-		browser:                            browser,
-		hasGonePastTheTheTranslationDialog: false,
+		browser:           browser,
+		bannerIsClosedMap: bannerIsClosedMap,
 	}, nil
 }
 

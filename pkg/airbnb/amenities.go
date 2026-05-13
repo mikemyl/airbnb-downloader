@@ -36,9 +36,9 @@ func (c *Client) GetAmenities(listingURL string) ([]string, error) {
 		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
 	}
 
-	if !c.hasGonePastTheTheTranslationDialog {
+	if !c.bannerIsClosedMap[English] {
 		_ = closeTranslationOnDialog(page)
-		c.hasGonePastTheTheTranslationDialog = true
+		c.bannerIsClosedMap[English] = true
 	}
 
 	amenities, err := c.getAmenities(page, English)

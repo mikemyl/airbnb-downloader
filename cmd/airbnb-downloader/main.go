@@ -72,10 +72,10 @@ func run() error {
 	// Fetch listings
 	var listings []*airbnb.Listing
 	for _, url := range urls {
-		log.Printf("Fetching: %s", url)
+		log.Printf("Fetching: %q", url)
 		listing, err2 := client.GetListing(url)
 		if err2 != nil {
-			log.Printf("Error fetching %s: %v", url, err2)
+			log.Printf("Error fetching %q: %v", url, err2)
 			continue
 		}
 		listings = append(listings, listing)

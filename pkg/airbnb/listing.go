@@ -45,9 +45,9 @@ func (c *Client) GetLocalizedListing(listingURL string, locale Locale) (*Listing
 		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
 	}
 
-	if !c.hasGonePastTheTheTranslationDialog {
+	if !c.bannerIsClosedMap[locale] {
 		_ = closeTranslationOnDialog(page)
-		c.hasGonePastTheTheTranslationDialog = true
+		c.bannerIsClosedMap[locale] = true
 	}
 
 	return c.getListing(page, parsedURL, locale)
@@ -82,9 +82,9 @@ func (c *Client) GetListing(listingURL string) (*Listing, error) {
 		return nil, fmt.Errorf("failed to wait for page to load: %w", err)
 	}
 
-	if !c.hasGonePastTheTheTranslationDialog {
+	if !c.bannerIsClosedMap[English] {
 		_ = closeTranslationOnDialog(page)
-		c.hasGonePastTheTheTranslationDialog = true
+		c.bannerIsClosedMap[English] = true
 	}
 
 	return c.getListing(page, parsedURL, English)

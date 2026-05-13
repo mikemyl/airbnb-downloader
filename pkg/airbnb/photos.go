@@ -91,7 +91,7 @@ func closeTranslationOnDialog(page *rod.Page) error {
 	}
 	err = secondCookieModal.First.CancelTimeout().Timeout(shortWaitTime).Click("left", 1)
 	if err != nil {
-		return fmt.Errorf("failed to click the save button for closing the second modalContainer")
+		return errors.New("failed to click the save button for closing the second modalContainer")
 	}
 	err = page.Timeout(2 * time.Second).WaitLoad()
 	if err != nil {
