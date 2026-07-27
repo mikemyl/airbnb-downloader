@@ -108,7 +108,7 @@ func (c *Client) getReviews(page *rod.Page, locale Locale) (*Reviews, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get location review score: %w", err)
 	}
-	reviews.ScoreCheckIn, err = getReviewScore(getCommunicationText(locale), scroller, locale)
+	reviews.ScoreCheckIn, err = getReviewScore(getCheckInText(locale), scroller, locale)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get check-in review score: %w", err)
 	}

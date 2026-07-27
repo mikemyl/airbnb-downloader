@@ -35,6 +35,20 @@ func getCommunicationText(locale Locale) string {
 	}
 }
 
+// Airbnb's check-in category label. Verified against a live listing on
+// 2026-07-27: "Check-in" (en) / "Άφιξη" (el). getReviewScore anchors this with
+// ^...$, so it must match the rendered label exactly.
+func getCheckInText(locale Locale) string {
+	switch locale {
+	case English:
+		return "Check-in"
+	case Greek:
+		return "Άφιξη"
+	default:
+		return "Check-in"
+	}
+}
+
 func getLocationText(locale Locale) string {
 	switch locale {
 	case English:
