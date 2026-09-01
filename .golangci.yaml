@@ -440,6 +440,10 @@ linters:
       - common-false-positives
     # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
+      # Zero values are the point of a test's expected struct: spelling every
+      # field out hides what the case is actually asserting.
+      - path: '_test\.go'
+        linters: [ exhaustruct ]
 #      - source: 'TODO'
 #        linters: [ godot ]
 #      - text: 'should have a package comment'

@@ -8,6 +8,10 @@ type RoomInfo struct {
 }
 
 type Reviews struct {
+	// Rated is false while Airbnb withholds the average rating, which it does
+	// until a listing has three reviews. Score and the per-category scores are
+	// then meaningless and NumberOfReviews is the only figure Airbnb publishes.
+	Rated              bool    `json:"rated"`
 	Score              float64 `json:"scoreTotal"`
 	NumberOfReviews    int     `json:"numberOfReviews"`
 	ScoreCleanliness   float64 `json:"scoreCleanliness"`

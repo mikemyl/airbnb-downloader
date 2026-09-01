@@ -104,6 +104,19 @@ func getReviewsText(locale Locale) string {
 	}
 }
 
+// Airbnb's stand-in for the average rating of a listing with fewer than three
+// reviews. Verified against a live listing on 2026-09-01: "New" (en) / "Νέο" (el).
+func getNewListingText(locale Locale) string {
+	switch locale {
+	case English:
+		return "New"
+	case Greek:
+		return "Νέο"
+	default:
+		return "New"
+	}
+}
+
 func getRatedText(locale Locale) string {
 	switch locale {
 	case English:

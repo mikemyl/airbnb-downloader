@@ -78,6 +78,7 @@ Example usage and output:
       "TV"
     ],
     "reviews": {
+      "rated": true,
       "score": 4.9,
       "numberOfReviews": 10,
       "scoreCleanliness": 5,
@@ -90,6 +91,10 @@ Example usage and output:
   }  
 ]
 ```
+
+Airbnb withholds the average rating until a listing has three reviews, and shows no review
+section at all until it has one. Both come back as `"rated": false` with the scores left at
+zero — read `numberOfReviews`, and ignore the scores, whenever `rated` is false.
 
 Also, check the [examples](examples) directory for integrating it as a library.
 
