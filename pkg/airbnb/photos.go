@@ -16,6 +16,13 @@ const (
 )
 
 func (c *Client) getPhotos(page *rod.Page) ([]*url.URL, error) {
+	if photos, err := c.getPhotosFromPageState(page); err == nil {
+		return photos, nil
+	}
+	return c.getPhotosFromModal(page)
+}
+
+func (c *Client) getPhotosFromModal(page *rod.Page) ([]*url.URL, error) {
 	err := showAllPhotos(page)
 	if err != nil {
 		return nil, err

@@ -82,28 +82,6 @@ func getCleaningnessText(locale Locale) string {
 	}
 }
 
-func getOutOfFiveText(locale Locale) string {
-	switch locale {
-	case English:
-		return " out of 5 from "
-	case Greek:
-		return " στα 5 σε "
-	default:
-		return " out of 5 from "
-	}
-}
-
-func getReviewsText(locale Locale) string {
-	switch locale {
-	case English:
-		return " reviews"
-	case Greek:
-		return " κριτικές"
-	default:
-		return " reviews"
-	}
-}
-
 // Airbnb's stand-in for the average rating of a listing with fewer than three
 // reviews. Verified against a live listing on 2026-09-01: "New" (en) / "Νέο" (el).
 func getNewListingText(locale Locale) string {
@@ -114,17 +92,6 @@ func getNewListingText(locale Locale) string {
 		return "Νέο"
 	default:
 		return "New"
-	}
-}
-
-func getRatedText(locale Locale) string {
-	switch locale {
-	case English:
-		return "Rated "
-	case Greek:
-		return "Έλαβε "
-	default:
-		return "Rated "
 	}
 }
 

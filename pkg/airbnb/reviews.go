@@ -3,6 +3,7 @@ package airbnb
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -157,21 +158,42 @@ func parseElement(elem *rod.Element, locale Locale, parse func(string, Locale) (
 	return parse(text, locale)
 }
 
-// parseGuestFavoriteReviewHeader reads the "Rated 4.85 out of 5 from 146 reviews." header.
+// parseGuestFavoriteReviewHeader reads the "Rated 4.85 out of 5 from 146 reviews."
+// header. Airbnb has reworded the Greek form more than once ("Έλαβε … στα 5 σε …",
+// then "Βαθμολογήθηκε με … στα 5 από …"), so the match is on the figures around
+// the fixed "out of 5" token rather than the surrounding words.
 func parseGuestFavoriteReviewHeader(text string, locale Locale) (reviewSummary, error) {
-	removedRatedText := strings.ReplaceAll(text, getRatedText(locale), "")
-	removedReviewsText := strings.ReplaceAll(removedRatedText, getReviewsText(locale)+".", "")
-	parts := strings.Split(removedReviewsText, getOutOfFiveText(locale))
-	if len(parts) != 2 {
+	match := guestFavoriteHeaderPattern(locale).FindStringSubmatch(text)
+	if match == nil {
 		return unratedSummary(), fmt.Errorf("failed to parse score and number of reviews: %s", text)
 	}
-	return newReviewSummary(parts[0], parts[1], locale)
+	return newReviewSummary(match[1], match[2], locale)
 }
+
+func guestFavoriteHeaderPattern(locale Locale) *regexp.Regexp {
+	switch locale {
+	case Greek:
+		return greekGuestFavoriteHeader
+	case English:
+		return englishGuestFavoriteHeader
+	default:
+		return englishGuestFavoriteHeader
+	}
+}
+
+var (
+	englishGuestFavoriteHeader = regexp.MustCompile(`(\d+(?:\.\d+)?) out of 5 from ([\d,]+) reviews?`)
+	greekGuestFavoriteHeader   = regexp.MustCompile(`(\d+(?:,\d+)?) στα 5 (?:σε|από) ([\d.]+) κριτικ`)
+)
 
 // parseReviewHeader reads the "4.85 · 146 reviews" header, which reads
 // "New · 1 review" until the listing has enough reviews to be rated.
 func parseReviewHeader(text string, locale Locale) (reviewSummary, error) {
 	parts := strings.Split(text, scoreSeparator)
+	if len(parts) == 1 {
+		// Listings with too few reviews to be scored render just "2 reviews".
+		return newReviewSummary(getNewListingText(locale), parts[0], locale)
+	}
 	if len(parts) != 2 {
 		return unratedSummary(), fmt.Errorf("failed to parse score and number of reviews: %s", text)
 	}
